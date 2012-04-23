@@ -1,6 +1,6 @@
 # Rundfunk
 
-Rundfunk is zero-conf distributed pubsub build using polo and http
+Rundfunk is zero-conf distributed pubsub build using [polo](https://github.com/mafintosh/polo) and http
 It's available through npm:
 
 	npm install rundfunk
