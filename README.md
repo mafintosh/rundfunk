@@ -1,6 +1,6 @@
 # Rundfunk
 
-Rundfunk is zero-conf distributed pubsub build using [polo](https://github.com/mafintosh/polo) and http
+Rundfunk is zero-conf distributed pubsub build using polo and http
 It's available through npm:
 
 	npm install rundfunk
@@ -18,7 +18,7 @@ funk.subscribe('hello', function(message) {
 // wait a bit and then publish something
 
 setTimeout(function() {
-	funk.publish('hello', {hello:'world'});	
+	funk.broadcast('hello', {hello:'world'});	
 }, 100);
 ```
 
