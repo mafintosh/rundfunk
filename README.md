@@ -16,7 +16,6 @@ funk.subscribe('hello', function(message) {
 });
 
 // wait a bit and then publish something
-
 setTimeout(function() {
 	funk.broadcast('hello', {hello:'world'});	
 }, 100);
