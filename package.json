@@ -1,8 +1,8 @@
 {
  "name":"rundfunk",
  "author": "Mathias Buus Madsen <mathiasbuus@gmail.com>",
- "version":"0.0.1",
- "dependencies": {"common":">=0.2.0", "root":">=0.2.0", "request":"*", "polo":">=0.3.6"},
+ "version":"0.0.2",
+ "dependencies": {"common":">=0.2.0", "root":"0.4.x", "request":"*", "polo":">=0.3.6"},
  "repository": "git://github.com/mafintosh/rundfunk",
  "description":"Rundfunk is zero-conf distributed pubsub build using polo and http",
  "keywords": ["zeroconf", "pubsub", "subscribe", "broadcast"]

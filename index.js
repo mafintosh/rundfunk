@@ -71,8 +71,8 @@ var create = function() {
 	var env = process.env;
 
 	process.env = {};
-	app.listen(0, function() {
-		onready.put(repo.put('event-pipe', app).address);
+	app.listen(function(port) {
+		onready.put(repo.put('event-pipe', port).address);
 	});
 	process.env = env;
 
