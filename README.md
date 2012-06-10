@@ -8,6 +8,8 @@ It's available through npm:
 # Usage
 
 ``` js
+// run me on multiple computers on the same network
+
 var rundfunk = require('rundfunk');
 var radio = rundfunk();
 
@@ -15,7 +17,7 @@ radio.on('hello', function(message) {
 	console.log(message);
 });
 
-radio.emit('hello', {hello:'world'});	
+radio.emit('hello', {hello:'world'});
 ```
 
 That's it! Try running the above example in a couple of processes and you should see that it's freakin' distributed!
