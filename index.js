@@ -3,11 +3,12 @@ var polo     = require('polo');
 var pipeline = require('./pipeline');
 
 module.exports = function() {
+	var emitter = new process.EventEmitter();
+
 	var app = root();
 	var repo = polo();
 	var listening = {};
 	var emitting = {};
-	var emitter = new process.EventEmitter();
 	var readys = [];
 	var me;
 
@@ -77,7 +78,7 @@ module.exports = function() {
 	});
 	app.listen(function(port) {
 		me = repo.put('rundfunk', port);
-		setTimeout(function() {
+		setTimeout(function() { // lets give the instances a little time to find eachother
 			readys.forEach(function(fn) {
 				fn();
 			});
