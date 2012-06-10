@@ -45,7 +45,7 @@ module.exports = function() {
 			emitting[name].forEach(function(host) {
 				pipeline(host+'/emit', {event:name,data:data}, function(err, body) {
 					if (err || body) return;
-					remove(emitters[name], host);
+					remove(emitting[name], host);
 				});
 			});
 		});
