@@ -1,6 +1,6 @@
 # Rundfunk
 
-Rundfunk is zero-conf distributed pubsub build using [polo](https://github.com/mafintosh/polo) and http
+Rundfunk is zero-conf distributed event emitter build using [polo](https://github.com/mafintosh/polo)
 It's available through npm:
 
 	npm install rundfunk
@@ -9,16 +9,13 @@ It's available through npm:
 
 ``` js
 var rundfunk = require('rundfunk');
-var funk = rundfunk();
+var radio = rundfunk();
 
-funk.subscribe('hello', function(message) {
+radio.on('hello', function(message) {
 	console.log(message);
 });
 
-// wait a bit and then publish something
-setTimeout(function() {
-	funk.broadcast('hello', {hello:'world'});	
-}, 100);
+radio.emit('hello', {hello:'world'});	
 ```
 
 That's it! Try running the above example in a couple of processes and you should see that it's freakin' distributed!

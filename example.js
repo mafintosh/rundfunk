@@ -1,10 +1,7 @@
-var rundfunk = require('./index');
-var funk = rundfunk();
+var rundfunk = require('rundfunk');
+var radio = rundfunk();
 
-funk.subscribe('meh', function(doc) {
-	console.log(doc);
+radio.on('hello', function(from, world) {
+	console.log(from, 'says hello', world);
 });
-
-setTimeout(function() {
-	funk.broadcast('meh', {hello:'world', time:Date.now()});
-}, 100);
+radio.emit('hello', ''+process.pid, 'world');

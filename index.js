@@ -1,82 +1,104 @@
-var polo = require('polo');
-var root = require('root');
-var request = require('request');
-var common = require('common');
-var noop = function() {};
+var root     = require('root');
+var polo     = require('polo');
+var pipeline = require('./pipeline');
 
-var create = function() {
-	var that = {};
+module.exports = function() {
 	var app = root();
 	var repo = polo();
-	var onready = common.future();
-	var subscriptions = {};
-	var own = {};
+	var listening = {};
+	var emitting = {};
+	var emitter = new process.EventEmitter();
+	var readys = [];
+	var me;
+
+	var ready = function(fn) {
+		if (!readys) return fn();
+		readys.push(fn);
+	};
+	var remove = function(arr, item) {
+		item = arr.indexOf(item);
+		if (item === -1) return;
+		arr.splice(item, 1);
+	};
+	var all = function() {
+		return repo.all('rundfunk').filter(function(service) {
+			return service !== me;
+		}).map(function(service) {
+			return 'http://'+service.address;
+		});
+	};
+
+	emitter.on('newListener', function(name) {
+		ready(function() {
+			listening[name] = {event:name,listener:'http://'+me.address};
+			all().forEach(function(host) {
+				pipeline(host+'/listen', listening[name]);
+			});
+		});
+	});
+	emitter.emit = function(name) {
+		var data = Array.prototype.slice.call(arguments, 1);
+
+		ready(function() {
+			emitting[name] = emitting[name] || all();
+			emitting[name].forEach(function(host) {
+				pipeline(host+'/emit', {event:name,data:data}, function(err, body) {
+					if (err || body) return;
+					remove(emitters[name], host);
+				});
+			});
+		});
+		return process.EventEmitter.prototype.emit.apply(emitter, arguments);
+	};
 
 	app.use(root.json);
-	app.fn('response.ack', function() {
-		this.json({ack:true});
-	});
-	app.post('/subscribe', function(req, res) {
-		req.json.events.forEach(function(event) {
-			(subscriptions[event] = subscriptions[event] || {})[req.json.address] = 1;
-		});
-		res.ack();
-	});
-	app.post('/publish', function(req, res) {
-		(own[req.json.event] || []).forEach(function(fn) {
-			fn(req.json.data);
-		});
-		res.ack();
-	});
+	app.fn('response.pipeline', pipeline.fn);
 
-	that.subscribe = function(name, fn) {
-		(own[name] = own[name] || []).push(fn);
+	app.post('/listen', function(req, res) {
+		res.pipeline(function(body) {
+			var evt = body.event;
+			var listener = body.listener;
 
-		onready.get(function(me) {
-			repo.all('event-pipe').forEach(function(service) {
-				request.post({
-					url: 'http://'+service.address+'/subscribe',
-					json: {events: [name], address: me}
-				}, noop);
-			});
-		});
-	};
-	that.broadcast = function(name, obj) {
-		onready.get(function() {
-			Object.keys(subscriptions[name] || {}).forEach(function(address) {
-				request.post({
-					url: 'http://'+address+'/publish',
-					json: {event: name, data: obj}
-				}, noop);
-			});
-		});
-	};
+			if (!emitting[evt]) return false;
+			if (emitting[evt].indexOf(listener) > -1) return true;
 
-	repo.on('event-pipe/up', function(service) {
-		onready.get(function(me) {
-			request.post({
-				url: 'http://'+service.address+'/subscribe',
-				json: {events: Object.keys(own), address: me}
-			}, noop);
+			emitting[evt].push(listener);
+			return true;
 		});
 	});
-	repo.on('event-pipe/down', function(service) {
-		Object.keys(subscriptions).forEach(function(event) {
-			delete subscriptions[event][server.address];
+	app.post('/emit', function(req, res) {
+		res.pipeline(function(body) {
+			var params = [body.event];
+			var data = 'data' in body ? body.data : [];
 
-			if (!Object.keys(subscriptions[event]).length) delete subscriptions[event];
+			Array.prototype.push.apply(params, Array.isArray(data) ? data : [data]);
+			return process.EventEmitter.prototype.emit.apply(emitter, params);
 		});
 	});
-
-	var env = process.env;
-
-	process.env = {};
 	app.listen(function(port) {
-		onready.put(repo.put('event-pipe', port).address);
+		me = repo.put('rundfunk', port);
+		setTimeout(function() {
+			readys.forEach(function(fn) {
+				fn();
+			});
+			readys = null;
+		}, 200);
 	});
-	process.env = env;
 
-	return that;
+	repo.on('rundfunk/up', function(service) {
+		ready(function() {
+			var data = Object.keys(listening).map(function(evt) {
+				return listening[evt];
+			});
+
+			pipeline('http://'+service.address+'/listen', data);
+		});
+	});
+	repo.on('rundfunk/down', function(service) {
+		Object.keys(emitting).forEach(function(evt) {
+			remove(emitting[evt], 'http://'+service.address);
+		});
+	});
+
+	return emitter;
 };
-
-module.exports = create;
