@@ -1,6 +1,7 @@
 # Rundfunk
 
 Rundfunk is zero-conf distributed event emitter build using [polo](https://github.com/mafintosh/polo)
+
 It's available through npm:
 
 	npm install rundfunk
@@ -20,7 +21,9 @@ radio.on('hello', function(message) {
 radio.emit('hello', {hello:'world'});
 ```
 
-That's it! Try running the above example in a couple of processes and you should see that it's freakin' distributed!
+That's it!
+
+Try running the above example in a couple of processes and you should see that it's freakin' distributed!
 
 # License
 
